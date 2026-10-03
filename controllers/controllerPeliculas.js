@@ -96,15 +96,71 @@ const {titulo, descripcion,anio, duracion, genero_id}=req.body
 try {
    const [resultado]= await pool.query(
     "update peliculas set titulo=?, descripcion=?, anio=?, duracion=?, genero_id=? where id=?",
-    [titulo, descripcion, anio, duracion, genero_id]
+    [titulo, descripcion, anio, duracion, genero_id, idPelicula]
    ) 
 
+  if(resultado.affectedRows==0){
+   return res.status(404).json({
+    mensaje: "No se actualizaron los datos"
+   })
+  }
 
+  return res.status(200).json({
+    mensaje: "Pelicula actualizada con exito",
+    pelicula: resultado.affectedRows
+  })
 
 
 
 } catch (error) {
-    
+    console.error("Error interno del servidor ", error)
+}
+
+}
+
+const eliminarPelicula=async(req, res)=>{
+ const idPelicula=parseInt(req.params.id)
+ try {
+    const [resultado]= await pool.query(
+        "delete from peliculas where id=?",
+        [idPelicula]
+    )
+ if(resultado.affectedRows==0){
+ return res.status(404).json({
+    mensaje:"No existe ese id"
+ })
+ }
+ return res.status(200).json({
+    mensaje:"Pelicula eliminada con exito"
+ })
+
+
+ } catch (error) {
+    console.error("Error interno en el servidor ", error)
+ }
+
+}
+
+const buscarPorTitulo=async(req, res)=>{
+const buscarTitulo=req.params.titulo
+try {
+    const [resultado]=await pool.query(
+        "select * from peliculas where titulo like ?",
+      [`%${buscarTitulo}%`]
+    )
+
+    if(resultado==0){
+     return res.status(404).json({
+        mensaje: "No existen peliculas con ese titulo"
+     })
+    }
+    return res.status(200).json({
+        mensaje: "Resultados de la busqueda",
+        resultado
+    })
+
+} catch (error) {
+    console.error("Error interno del servidor", error)
 }
 
 }
@@ -115,5 +171,8 @@ module.exports={
 
     verPeliculas,
     verPelicula,
-    crearPelicula
+    crearPelicula,
+    actualizarPelicula,
+    eliminarPelicula,
+    buscarPorTitulo
 }
